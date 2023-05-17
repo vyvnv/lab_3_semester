@@ -3,7 +3,7 @@ using namespace std;
 
 class Array
 { int *a, n;
-    n = 5;
+
     public:
     // конструктор 1
     // len – число элементов в массиве
@@ -11,11 +11,11 @@ class Array
     // t = 2 – массив, упорядоченный по неубыванию
     // t = 3 – массив, упорядоченный по невозрастанию
     // d – диапазон псевдослучайных чисел для неупорядоченного массива (при t = 1)
-    Array(int len = 1, int t = 1, int d = 10);
+    Array(int len = 1, int t = 1, int d = 10); // видимо, конструктор по умолчанию
 
     Array(int *, int); // конструктор 2: по массиву
-    Array(Array &);
-    ~Array();
+    Array(Array &); // конструктор копирования
+    ~Array(); // деструктор
     Array& operator = (Array &);
     int &operator [](int);
 
