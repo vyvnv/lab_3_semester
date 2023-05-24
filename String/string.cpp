@@ -1,4 +1,7 @@
 #include <iostream>
+#include <cstring>
+//#include <cstdio>
+
 using namespace std;
 
 class String
@@ -13,10 +16,11 @@ class String
     ~String() { if(str) delete []str; str = NULL; } // деструктор +
     int Len(); //получить размер +
     String & operator = (const String &);//перегруженная операция присваивания
-    char &operator [](int);
-    bool operator == (String &);
-    bool operator != (String &);
-    String operator + (const String &);
+    String operator + (const String &); // сложение строк +
+    char &operator [](int); //кв скобки +
+    bool operator == (String &); // сравнение и равенство +
+    bool operator != (String &); // сравнение и неравенство хотя зачем оно надо +
+    
     String & operator += (const String &);
     friend istream & operator >> (istream &, String &);
     friend ostream & operator << (ostream &, String &);
@@ -27,23 +31,22 @@ String::String(int l)
 {
     str = new char[l];
     len = 0;
-    str[0] = '/0';
+    str[0] = '\0';
 }
 
-String::String(const char *line) // cпросить про такую реализацию конструктора
+String::String(const char *line) 
 {
-    str = new char[strlen(line)+1];
-    if(str)
-    { 
-        for (len = 0; len != '/0'; str[len] = line[len], len++);
-        str[len] = '/0';
-    }
-    else delete(str);
+    str = new char[strlen(line) + 1 ];
+        for (len = 0; line[len] != '\0'; len++)
+        {
+            str[len] = line[len];       
+        }
+        //cout << len << endl;
+        str[len] = '\0';
 }
 
 String::String(String & string_object)
 {
-
     str = new char[string_object.len+1];
     for (len = 0;  len <= string_object.len;  str[len] = string_object.str[len], len++);
     len--;
@@ -56,124 +59,183 @@ int String::Len()
 
 String& String::operator = (const String &some_obj)
 {
-    if (this != &some_obj) // если первый операнд не указывает на одну и ту же область памяти, что и второй, то выполняем присвоение
+    if (this != &some_obj) 
     {
         delete []str; // осв память поля str объекта this
         str = new char[(len=some_obj.len)+1]; //выделяем
         strcpy (str, some_obj.str); // копируем из поля str второго операнда в поле str операнда this
     }
-    return *this; // иначе возвращаем первый операнд
+    return *this; 
 }
 
-char & String:: operator [](int i){
-    if (i<0 || i>len) {puts("Index outside the row");exit(0);}
+char& String:: operator [](int i){
+    if (i < 0 || i > len) 
+    {
+        cout << "index is out of range";
+        //return str[len+1];    
+    }
     return str[i];
 }
 
-bool String:: operator == (String &s){
-    if(strcmp(str,s.str)==0) return true;
+bool String:: operator == (String &s)
+{
+    if (strcmp(str,s.str) == 0) 
+        return true;
     return false;
 }
 
-bool String:: operator != (String &s){
-    if (strcmp(str,s.str)!=0) return true;
+bool String:: operator != (String &s)
+{
+    if (strcmp(str,s.str) !=0 ) 
+        return true;
     return false;
 }
 
-String String:: operator + (const String &s){
-    String tmp(len+s.len+1);
-    strcpy(tmp.str,str);
-    strcat(tmp.str,s.str);
-    tmp.len=strlen(tmp.str);
+String String:: operator + (const String &s)
+{
+    String tmp(len + s.len + 1); //создаем локальный объект
+    strcpy(tmp.str, str); 
+    strcat(tmp.str, s.str); // конкатенируем
     return tmp;
 }
 
-String & String:: operator += (const String &s){
-    char *m=new char[len+1];
-    strcpy(m,str);
-    delete []str;
-    len=len+s.len;
-    str=new char[len+1];
-    strcpy(str,m);
-    strcat(str,s.str);
-    delete []m;
+String& String:: operator += (const String &s) // переделать через +
+{
+   // String tmp = *this;
+    *this = *this + s;
     return *this;
 }
 
-istream & operator >> (istream &r, String &s){
+istream & operator >> (istream &r, String &s)
+{
     char m[120];
-    cin>>m;
+    cin >> m;
     String tmp(m);
-    s=tmp;
+    s = tmp;
     return r;
 }
 
-ostream & operator << (ostream &r, String &s){
-    r<<s.str<<endl;;
+ostream & operator << (ostream &r, String &s)
+{
+    r << s.str <<endl;;
     return r;
 }
 
 int String:: BMH_search(String &s)
 {
-    int i=0,k,j=0,l; 
-    char t[255+1];
-    if (s.len>len) 
-        return -1;
-    for (; i< 256; i++)
+    int * symTable = new int[256];
+
+    for (int i = 0; i < 256; i++)
     {
-        t[i]=s.len;
+        symTable[i] = s.len;
     }
-    for (;j<s.len-1;j++) 
+    for (int i = 0; i < (s.len -1); i++)
     {
-        t[s[j]]=s.len-j-1;
+        symTable[s[i] ] = s.len - 1 - i;
+
     }
+	
+	int i = s.len - 1, j = s.len - 1;
+	while (true)
+	{
+		if ((i < len) && (j >= 0))
+		{
+			int k = i;
+			j = s.len - 1;
 
-    i= j = s.len-1;
+			bool flag = true;
+			while (flag)
+			{
+				if (j < 0) flag = false;
+				else
+				{
+					if (str[k] == s.str[j]) { j--; k--; }
+					else
+                    {
+						i = i + symTable[str[i]];
+						j = s.len - 1;
+						flag = false;
+					}
+				}
+				
+			}
+			
+		}
+		else
+		{
+			if (j >= 0)
+			{
+				cout << "String in text not found.\n";
+				return -1;
+			}
+			else
+			{
+				return (i + 1 - s.len);
+			}
+		}
+		
+	}
 
-    while (i < len && j >= 0) 
-    {
-        k=i; 
-        j=s.len-1;
-
-        while (j >= 0) 
-        {
-            if (str[k]==s[j])   
-            {
-                k--;
-                j--;
-            } 
-            else 
-            {
-                i+=t[str[i]];
-                j=s.len-1;
-                break;
-            }
-        }
-        } if (j>=0) 
-        return -1; 
-        else return i+1-s.len;
 }
 
 int main() {
-    String s1("Michael"); String s2("Afton"); String s3; String s4("Michael"); String s5("Terrence");
-    cout<<"Length "<<s2.Len()<<endl;
-    s3=s1+s5+s2;
-    cout<<s3;
-    s2[3]='c'; cout<<s2;
-    if (s1==s1) cout<<"Lines are equal"<<endl;
-    if (s1!=s1) cout<<"Lines are not equal"<<endl;
-    s4+=s5;
-    cout<<s4;
-    cin>>s3;
-    cout<<s3;
-    int count=s4.BMH_search(s1);
-    if (count==-1) cout<<"No "<<endl; else cout<<"Index= "<<count<<endl;
-    String s6("achfakhacfadbcaababcaaa");
-    String s7("aac");
-  if (s6==s7) cout<<"Lines are equal"<<endl;
-  if (s6!=s7) cout<<"Lines are not equal"<<endl;
-    count=s6.BMH_search(s7);
-    if (count==-1) cout<<"No "<<endl; else cout<<"Index= "<<count<<endl;
+    //СОЗДАДИМ СТРОКИ ДЛЯ ТЕСТОВ
+    String s1("ban"); //тут сработал конструктор
+    String s2 = s1;  // тут к. копирования
+    String s3; // тут к. по умолчанию
+    String s4("plates"); 
+    String s5("banana");
+    //проверим работу конструкторов
+    cout << "String 1 = " << s1 << endl;
+    cout << "String 2 = " << s2 << endl;
+    cout << "String 3 = " << s3 << endl;
+
+    //ОПЕРАТОР СЛОЖЕНИЯ
+    s3 = s1 + s5; 
+    cout << s3 << endl;
+
+    //КВАДРАТНЫЕ СКОБКИ
+    cout << "First letter of the string:" << s1[0] << endl;
+    cout << "Last letter of the string:" << s1[5] << endl;
+    // тут я попробовала ввести индекс за пределами длины 
+    cout << s1[7] << endl;
+    
+    //СРАВНЕНИЕ СТРОК
+    if (s1 == s2) // сравним заведомо одинаковые
+    {
+        cout << "Strings 1 and 2 are equal" << endl;
+    }
+
+    else cout << "Strings 1 and 2 are different" << endl;
+
+    if (s1 == s3) // сравним заведомо разные
+    {
+       cout << "Strings 1 and 3 are equal" << endl;
+    }
+
+    else cout << "Strings 1 and 3 are different" << endl;
+
+    cout << endl << endl;
+
+    //ОПЕРАТОР +=
+    cout <<  "String 4 = " << s4 << endl;
+    s4 += s5;
+    cout << "Now string 4  = " << s4 << endl;
+
+    //ПРОВЕРИМ РАБОТУ БМ ПОИСКА
+
+    String s6; //= "bbcabcabcabc";
+    String s7; // = "abc";
+    cout << "Enter the string :" ;
+    cin >> s6;
+    cout << "Enter the substring :";
+    cin >> s7;
+
+    int index = s6.BMH_search(s7);
+
+    if (index == -1) cout << "No such substrings" << endl; 
+    else cout << "Index = " << index  << endl;
+
+
 return 0;   
 }
-
